@@ -17,7 +17,6 @@
   align-items: center;
   height: 70px; /* Adjusted height */
   border-bottom: 1px solid #ccc;
-  background-color: white;
 }
 
 .main-container {
@@ -25,7 +24,7 @@
   justify-content: space-evenly; /* Space out Current Serving and Queue cards */
   align-items: flex-start; /* Align items at the top */
   flex-grow: 1;
-  margin-top: 10px; /* Minor spacing to lift content up */
+  margin-top: 120px; /* Minor spacing to lift content up */
 }
 
 .current-serving {
@@ -38,7 +37,7 @@
 }
 
 .current-serving h2 {
-  font-size: 32px; /* Increased font size */
+  font-size: 36px; /* Increased font size */
   color: #4caf50;
   margin-bottom: 15px;
 }
@@ -53,6 +52,7 @@
   display: flex;
   flex-direction: column;
   gap: 15px; /* Reduced spacing between cards */
+  font-size: 20px
 }
 
 .upcoming-patient {

@@ -27,6 +27,13 @@
   color: black;
 }
 
+.table-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
 /* Patient Table */
 .patients-section {
   padding: 20px;
@@ -114,18 +121,4 @@
 
 .close-popup:hover {
   background-color: #c82333;
-}
-
-.tv-display-button {
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-}
-
-.tv-display-button:hover {
-  background-color: #45a049;
 }

@@ -1,19 +1,26 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate } from "react-router-dom";
+import React, { useState } from "react";
+import { Routes, Route } from "react-router-dom";
 import Admin from "./Admin";
 import Doctor from "./Doctor";
-import ClinicDisplay from "./displays/DisplayScreenTV";
+import Auth from "./Auth";
+import TVQueueDisplay from "./displays/TVQueueDisplay";
 
 const App = () => {
+  const [role, setRole] = useState(null);
+
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<Admin />} />
+    <Routes>
+      {!role ? (
+        <Route path="/" element={<Auth setRole={setRole} />} />
+      ) : role === "Admin" ? (
+        <>
+          <Route path="/admin" element={<Admin />} />
+          <Route path="/tv-queue-display" element={<TVQueueDisplay />} />
+        </>
+      ) : (
         <Route path="/doctor" element={<Doctor />} />
-        <Route path="/tv-display" element={<ClinicDisplay />} />
-        <Route path="*" element={<Navigate to="/" replace />} /> {/* Redirect invalid routes */}
-      </Routes>
-    </Router>
+      )}
+    </Routes>
   );
 };
 

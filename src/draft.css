@@ -1,165 +1,81 @@
-/* General Layout */
-.body {
+.tv-display {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f4f4f4;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: #333; /* Background for the doctor interface */
-  color: white; /* Ensure readability */
-  margin: 0;
-  padding: 0;
+  height: 100vh;
+  overflow: hidden; /* Prevent scrolling */
 }
 
 .header {
-  position: fixed; /* Ensure the logo remains at the top-left, even when scrolling */
-  top: 0;
-  left: 0;
-  padding: 10px;
-  z-index: 1000; /* Ensure it stays on top of other elements */
-  background-color: black; /* Optional: Add background to the logo area */
-}
-
-.content {
-  margin-top: 30px; /* Push content below the header */
-}
-
-.header .title {
-  font-size: 1.5rem;
+  font-size: 28px;
   font-weight: bold;
-  color: white;
-  margin: 0;
-  text-align: right; /* Align to the right */
-}
-
-.content {
-  margin-top: 60px; /* Push content down to avoid overlapping the logo */
-  text-align: center;
-}
-
-
-/* Patient List */
-.patient-list {
-  margin: 20px auto;
-  width: 80%;
-  list-style: none;
-  color: #28a745; /* Green text for patient names */
-}
-
-.patient-list li {
-  font-size: 16px;
-  margin: 5px 0;
-}
-
-/* Buttons */
-button {
-  padding: 10px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #007bff;
-}
-
-.patient-name {
-  background: none;
-  color: #28a745;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-  font-size: 16px;
-}
-
-.patient-name:hover {
-  color: #218838;
-}
-
-.popup {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
+  color: black;
   display: flex;
-  align-items: center;
   justify-content: center;
-  z-index: 1000;
+  align-items: center;
+  height: 70px; /* Adjusted height */
+  border-bottom: 1px solid #ccc;
+  background-color: white;
 }
 
-.popup-content h3 {
-  font-size: 24px; /* Adjust the size as needed */
-  font-weight: bold;
-  color: #ffffff; /* Ensures it stays white for dark backgrounds */
-  margin-bottom: 15px; /* Adds spacing below the heading */
+.main-container {
+  display: flex;
+  justify-content: space-evenly; /* Space out Current Serving and Queue cards */
+  align-items: flex-start; /* Align items at the top */
+  flex-grow: 1;
+  margin-top: 10px; /* Minor spacing to lift content up */
 }
 
-.popup-content {
-  background: #333;
-  padding: 20px;
+.current-serving {
+  border: 3px solid #4caf50;
   border-radius: 10px;
-  color: white;
-  width: 90%;
-  max-width: 500px;
+  padding: 40px;
+  width: 450px; /* Keep width consistent */
+  text-align: center;
+  background-color: #fff;
 }
 
-.close-popup {
-  margin-top: 10px;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.close-popup:hover {
-  background-color: #c82333;
-}
-
-.mark-completed {
-  margin-top: 10px;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-left: 10px;
-}
-
-.mark-completed:hover {
-  background-color: #0056b3;
-}
-
-/* Dropdown Menu Styling */
-select {
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  color: white;
-  background-color: #333; /* Matches the dark theme of the interface */
-  border: 1px solid #555; /* Subtle border for the dropdown */
-  border-radius: 5px; /* Rounded corners */
+.current-serving h2 {
+  font-size: 32px; /* Increased font size */
+  color: #4caf50;
   margin-bottom: 15px;
-  appearance: none; /* Removes default OS-specific arrow for a consistent look */
 }
 
-select:focus {
-  border-color: #007bff; /* Highlighted border on focus */
-  outline: none; /* Removes default outline */
+.queue-number {
+  font-size: 70px; /* Larger font for better visibility */
+  font-weight: bold;
+  color: #2196f3;
 }
 
-option {
-  background-color: #333; /* Matches dropdown background */
-  color: white; /* Ensures readability in dark theme */
+.upcoming {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Reduced spacing between cards */
 }
 
-option:hover {
-  background-color: #555; /* Slightly lighter on hover */
+.upcoming-patient {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #4caf50;
+  color: #fff;
+  padding: 30px 40px; /* Consistent padding for larger cards */
+  border-radius: 10px;
+  width: 400px; /* Larger width */
+  font-size: 30px; /* Increased font size */
+  font-weight: bold; /* Bold text */
+}
+
+.footer {
+  background-color: #d3d3d3;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.footer .logo {
+  height: 50px;
 }

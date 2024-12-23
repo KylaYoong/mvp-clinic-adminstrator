@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import { db } from "./firebase";
 import {
   collection,
@@ -12,16 +13,16 @@ import {
   Timestamp,
   getDocs,
 } from "firebase/firestore";
-import { Link } from "react-router-dom"; // Import Link for navigation
 import "./Admin.css";
 import SKPLogo from "./SKP-logo.jpg";
 
 function Admin() {
   const [empID, setEmpID] = useState("");
   const [empName, setEmpName] = useState("");
-  const [empEmail, setEmpEmail] = useState("");
+  const [empEmail, setEmpEmail] = useState(""); // New state for email
   const [loading, setLoading] = useState(false);
   const [patients, setPatients] = useState([]);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   useEffect(() => {
     const patientsRef = collection(db, "queue");
@@ -43,50 +44,73 @@ function Admin() {
   }, []);
 
   const handleInviteNextPatient = async () => {
-    if (patients.length === 0) {
-      alert("No patients available in the queue!");
-      return;
-    }
-
-    const currentPatient = patients.find((patient) => patient.status === "being attended");
-    if (currentPatient) {
-      await updateDoc(doc(db, "queue", currentPatient.id), { status: "completed" });
-    }
-
-    const nextPatient = patients.find((patient) => patient.status === "waiting");
-    if (nextPatient) {
-      await updateDoc(doc(db, "queue", nextPatient.id), { status: "being attended" });
-      alert(`Invited: ${nextPatient.name}`);
-    } else {
-      alert("No more patients waiting!");
+    try {
+      // Get current and next patient
+      const currentPatient = patients.find((patient) => patient.status === "being attended");
+      const nextPatient = patients.find((patient) => patient.status === "waiting");
+  
+      // Mark the current patient as "completed"
+      if (currentPatient) {
+        await updateDoc(doc(db, "queue", currentPatient.id), { status: "completed" });
+        console.log(`Marked as completed: ${currentPatient.queueNumber}`);
+      }
+  
+      // Mark the next patient as "being attended"
+      if (nextPatient) {
+        await updateDoc(doc(db, "queue", nextPatient.id), { status: "being attended" });
+        console.log(`Marked as being attended: ${nextPatient.queueNumber}`);
+        alert(`Invited: ${nextPatient.name}`);
+      } else {
+        alert("No more patients waiting!");
+      }
+    } catch (error) {
+      console.error("Error inviting next patient:", error);
+      alert(`Error: ${error.message}`);
     }
   };
+  
+  
 
   const handleRegisterPatient = async (e) => {
     e.preventDefault();
-
-    if (!empID.match(/^\d{6}$/) || !empName.match(/^[a-zA-Z ]+$/)) {
-      alert("Invalid Employee ID or Name!");
+  
+    if (!empID.match(/^\d{6}$/)) {
+      alert("Employee ID must be exactly 6 digits!");
       return;
     }
-
+  
+    if (!empName.match(/^[a-zA-Z ]+$/)) {
+      alert("Employee name must contain only letters and spaces!");
+      return;
+    }
+  
     setLoading(true);
     try {
       const queueCollection = collection(db, "queue");
       const queueSnapshot = await getDocs(queueCollection);
-      const queueNumbers = queueSnapshot.docs.map((doc) => parseInt(doc.data().queueNumber.replace("D", ""), 10));
+  
+      // Safely map queue numbers
+      const queueNumbers = queueSnapshot.docs
+        .map((doc) => doc.data().queueNumber)
+        .filter((queueNumber) => queueNumber !== undefined) // Filter out undefined values
+        .map((queueNumber) =>
+          parseInt(queueNumber.replace("D", ""), 10)
+        );
+  
       const nextQueueNumber = Math.max(0, ...queueNumbers) + 1;
       const queueNumber = `D${String(nextQueueNumber).padStart(4, "0")}`;
-
-      await setDoc(doc(queueCollection, empID), {
+  
+      // Save the patient document
+      const patientRef = doc(queueCollection, empID);
+      await setDoc(patientRef, {
         employeeID: empID,
         name: empName,
-        email: empEmail || null,
-        queueNumber,
+        email: empEmail || null, // Handle optional email properly
+        queueNumber: queueNumber,
         status: "waiting",
         timestamp: Timestamp.now(),
       });
-
+  
       alert(`Patient registered successfully! Queue number: ${queueNumber}`);
       setEmpID("");
       setEmpName("");
@@ -96,6 +120,10 @@ function Admin() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleNavigateToTVQueue = () => {
+    navigate("/tv-queue-display"); // Redirect to the TV Queue Display page
   };
 
   return (
@@ -127,16 +155,19 @@ function Admin() {
             type="email"
             placeholder="Enter Employee Email"
             value={empEmail}
-            onChange={(e) => setEmpEmail(e.target.value)}
+            onChange={(e) => setEmpEmail(e.target.value)} // Email field
           />
           <button type="submit" disabled={loading}>
             {loading ? "Registering..." : "Register New Patient"}
           </button>
         </form>
 
-        <Link to="/tv-display">
-          <button className="tv-display-button">View TV Display</button>
-        </Link>
+        <br/>
+        {/* Add the new button */}
+        <button onClick={handleNavigateToTVQueue}>
+          View Queue on TV
+        </button>
+
       </div>
     </div>
   );
