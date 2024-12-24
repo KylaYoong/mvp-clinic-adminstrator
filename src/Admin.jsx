@@ -68,41 +68,46 @@ function Admin() {
 
   const handleRegisterPatient = async (e) => {
     e.preventDefault();
-
+  
     if (!empID.match(/^\d{6}$/)) {
       alert("Employee ID must be exactly 6 digits!");
       return;
     }
-
+  
     if (!empName.match(/^[a-zA-Z ]+$/)) {
       alert("Employee name must contain only letters and spaces!");
       return;
     }
-
+  
     setLoading(true);
     try {
       const queueMetaRef = doc(db, "queueMeta", "adminQueue");
-
+  
       let queueNumber = await runTransaction(db, async (transaction) => {
         const queueMetaDoc = await transaction.get(queueMetaRef);
-
+  
         if (!queueMetaDoc.exists()) {
           transaction.set(queueMetaRef, { queueNumber: "A0001" });
           return "A0001";
         } else {
           const queueData = queueMetaDoc.data();
-          const lastQueueNumber = parseInt(queueData.queueNumber.replace("A", ""), 10);
-
+  
+          // Safely parse the queue number
+          const lastQueueNumber = queueData.queueNumber && queueData.queueNumber.startsWith("A")
+            ? parseInt(queueData.queueNumber.slice(1), 10)
+            : 0;
+  
           if (isNaN(lastQueueNumber)) {
-            throw new Error("Invalid queue number format in database.");
+            console.error("Invalid queue number format, defaulting to A0001.");
+            return "A0001";
           }
-
+  
           const newQueueNumber = `A${String(lastQueueNumber + 1).padStart(4, "0")}`;
           transaction.update(queueMetaRef, { queueNumber: newQueueNumber });
           return newQueueNumber;
         }
       });
-
+  
       const patientRef = doc(collection(db, "queue"), empID);
       await setDoc(patientRef, {
         employeeID: empID,
@@ -112,7 +117,7 @@ function Admin() {
         status: "waiting",
         timestamp: Timestamp.now(),
       });
-
+  
       alert(`Patient registered successfully! Queue number: ${queueNumber}`);
       setEmpID("");
       setEmpName("");
@@ -124,6 +129,7 @@ function Admin() {
       setLoading(false);
     }
   };
+  
 
   const handleNavigateToTVQueue = () => {
     navigate("/tv-queue-display");
