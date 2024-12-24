@@ -80,9 +80,9 @@ function Doctor() {
             <table className="patient-table">
               <thead>
                 <tr>
+                  <th>Queue No.</th>
                   <th>Employee ID</th>
                   <th>Name</th>
-                  <th>Visit Time</th>
                   <th>Status</th>
                   <th>Details</th>
                 </tr>
@@ -90,9 +90,9 @@ function Doctor() {
               <tbody>
                 {patients.map((patient) => (
                   <tr key={patient.id}>
+                    <td>{patient.queueNumber}</td>  { /*I think issue is here */}
                     <td>{patient.employeeID}</td>
                     <td>{patient.name}</td>
-                    <td>{patient.visitTime}</td>
                     <td>{patient.status}</td>
                     <td>
                       <button onClick={() => handleSelectPatient(patient)}>Details</button>
@@ -112,9 +112,7 @@ function Doctor() {
           <div className="popup-content">
             <h3>Details for {selectedPatient.name}</h3>
             <p><strong>Employee ID:</strong> {selectedPatient.employeeID}</p>
-            <p><strong>Age:</strong> {selectedPatient.age}</p>
-            <p><strong>Condition:</strong> {selectedPatient.condition}</p>
-            <p><strong>Visit Time:</strong> {selectedPatient.visitTime}</p>
+            <p><strong>Name:</strong> {selectedPatient.name}</p>
             <label htmlFor="notes">Select Medical Notes:</label>
             <select
               id="notes"

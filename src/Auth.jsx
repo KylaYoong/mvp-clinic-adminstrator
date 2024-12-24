@@ -49,12 +49,12 @@ const Auth = ({ setRole }) => {
 
   return (
     <div className="auth-page">
-      <div className="auth-container">
-        <div className="header">
-          <img src={SKPLogo} alt="SKP Logo" className="logo" />
-          <h2 className="header-title">{isRegister ? "Staff Register" : "Staff Login"}</h2>
-        </div>
+      <div className="header">
+        <img src={SKPLogo} alt="SKP Logo" className="logo" />
+        <h2 className="header-title">{isRegister ? "Staff Register" : "Staff Login"}</h2>
+      </div>
 
+      <div className="auth-container">
         <form onSubmit={handleAuth}>
           <input
             type="email"

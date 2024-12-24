@@ -30,18 +30,8 @@ const TVQueueDisplay = () => {
 
   // Fetch real-time data from Firestore
   useEffect(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of the day
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1); // Start of the next day
-  
     const queueRef = collection(db, "queue");
-    const q = query(
-      queueRef,
-      where("timestamp", ">=", today),
-      where("timestamp", "<", tomorrow),
-      orderBy("timestamp", "asc")
-    );
+    const q = query(queueRef, orderBy("timestamp", "asc")); // Fetch all patients ordered by timestamp
   
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const patients = snapshot.docs.map((doc) => ({
@@ -49,17 +39,12 @@ const TVQueueDisplay = () => {
         ...doc.data(),
       }));
   
-      console.log("Fetched Patients from Firestore:", patients); // Debugging output
-  
-      // Ensure "Current Serving" logic handles cases where no patient is "being attended"
+      // Filter and update state based on status
       const nextServing = patients.find((patient) => patient.status === "being attended");
-      if (!nextServing) {
-        console.warn("No patient marked as 'being attended'!");
-      }
-  
-      // Update the state
       setCurrentServing(nextServing || null);
-      setUpcomingPatients(patients.filter((patient) => patient.status === "waiting"));
+  
+      const upcoming = patients.filter((patient) => patient.status === "waiting");
+      setUpcomingPatients(upcoming);
     });
   
     return () => unsubscribe();

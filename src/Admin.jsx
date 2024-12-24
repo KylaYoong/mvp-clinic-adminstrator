@@ -13,6 +13,7 @@ import {
   Timestamp,
   getDocs,
 } from "firebase/firestore";
+import { runTransaction } from "firebase/firestore"; // Import runTransaction
 import "./Admin.css";
 import SKPLogo from "./SKP-logo.jpg";
 
@@ -84,23 +85,25 @@ function Admin() {
   
     setLoading(true);
     try {
-      const queueMetaRef = doc(collection(db, "queueMeta"), "queueInfo");
-      const queueMetaSnapshot = await getDocs(collection(db, "queueMeta"));
+      const queueMetaRef = doc(db, "queueMeta", "adminQueue"); // Reference for adminQueue document
   
-      let queueNumber;
+      // Transaction to ensure atomicity
+      let queueNumber = await runTransaction(db, async (transaction) => {
+        const queueMetaDoc = await transaction.get(queueMetaRef);
   
-      if (!queueMetaSnapshot.empty) {
-        const queueData = queueMetaSnapshot.docs[0].data();
-        const lastQueueNumber = parseInt(queueData.queueNumber.replace("D", ""), 10);
-        queueNumber = `D${String(lastQueueNumber + 1).padStart(4, "0")}`;
-        await updateDoc(queueMetaRef, { queueNumber });
-      } else {
-        queueNumber = "D0001";
-        await setDoc(queueMetaRef, {
-          queueNumber,
-          lastResetDate: Timestamp.fromDate(new Date()),
-        });
-      }
+        if (!queueMetaDoc.exists()) {
+          // If the document does not exist, create it with A0001
+          transaction.set(queueMetaRef, { queueNumber: "A0001" });
+          return "A0001";
+        } else {
+          // Increment the existing queue number
+          const queueData = queueMetaDoc.data();
+          const lastQueueNumber = parseInt(queueData.queueNumber.replace("A", ""), 10);
+          const newQueueNumber = `A${String(lastQueueNumber + 1).padStart(4, "0")}`;
+          transaction.update(queueMetaRef, { queueNumber: newQueueNumber });
+          return newQueueNumber;
+        }
+      });
   
       // Save the patient document
       const patientRef = doc(collection(db, "queue"), empID);
@@ -118,11 +121,13 @@ function Admin() {
       setEmpName("");
       setEmpEmail("");
     } catch (error) {
+      console.error("Error during registration:", error);
       alert(`Error: ${error.message}`);
     } finally {
       setLoading(false);
     }
   };
+  
   
 
   const handleNavigateToTVQueue = () => {

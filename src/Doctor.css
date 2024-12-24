@@ -3,28 +3,42 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: #f4f4f4;
+  background-color: #ffffff;
   width: 1000px; /* Set a fixed width for the container */
-  margin-top: 100px;
+  /* margin-top: 100px; */
+  margin: 100px auto 0; /* Changed: added auto for horizontal centering */
 }
 
+/* Styles the fixed header containing the logo and title */
 .header {
-  background-color: #333;
-  padding: 20px;
-  color: white;
-  text-align: center;
-  position: sticky;
+  position: fixed; /* Fixes the header at the top */
   top: 0;
+  left: 0;
+  width: 100%; /* Full page width */
+  display: flex; /* Flexbox for alignment */
+  align-items: center; /* Vertically center content */
+  justify-content: space-between; /* Space logo and title apart */
+  padding: 10px 20px; /* Spacing inside the header */
+  background-color: #ffffff; /* Dark background for contrast */
+  color: #ffffff;
+  z-index: 1000; /* Ensure it stays on top */
 }
 
-.header .logo {
-  height: 50px;
-  width: auto;
+.logo {
+  height: 60px !important;
+  width: 200px !important;
+  max-height: 100%;
 }
 
-.header .header-title {
-  margin: 10px 0;
-  color: black;
+.header-title {
+  font-size: 1.5rem; /* Adjust size */
+  font-weight: bold;
+  color: #000000;  
+  /* color: #ffffff; */
+  margin: 0;
+  flex-shrink: 0; /* Prevent text from being cut off */
+  white-space: nowrap; /* Ensure text doesn't wrap */
+  padding-right: 40px; /* Add padding to prevent clipping */
 }
 
 .table-wrapper {
@@ -97,9 +111,16 @@
   color: black
 }
 
-.save-button,
-.mark-completed-button {
+.save-button {
   background-color: #28a745;
+  color: white;
+  padding: 10px;
+  margin: 10px;
+  cursor: pointer;
+}
+
+.mark-completed-button {
+  background-color: #0d78e3;
   color: white;
   padding: 10px;
   margin: 10px;
@@ -108,7 +129,7 @@
 
 .save-button:hover,
 .mark-completed-button:hover {
-  background-color: #218838;
+  background-color: #214088;
 }
 
 .close-popup {

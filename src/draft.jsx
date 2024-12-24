@@ -1,86 +1,94 @@
-import React, { useState, useEffect } from "react";
-import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase"; // Adjust path if necessary
-import "./DisplayScreenTV.css";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "./firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+import { setDoc, getDoc, doc } from "firebase/firestore";
+import './Auth.css';
+import SKPLogo from "./SKP-logo.jpg";
 
-const ClinicDisplay = () => {
-  const [currentServing, setCurrentServing] = useState(null);
-  const [upcomingPatients, setUpcomingPatients] = useState([]);
-  const [currentTime, setCurrentTime] = useState("");
+const Auth = ({ setRole }) => {
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRoleState] = useState("Doctor");
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    // Update time every second
-    const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentTime(
-        now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }) +
-        " " +
-        now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })
-      );
-    }, 1000);
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    try {
+      if (isRegister) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-    return () => clearInterval(timer);
-  }, []);
+        await setDoc(doc(db, "users", user.uid), {
+          email,
+          role,
+        });
 
-  useEffect(() => {
-    // Get today's start and end timestamps
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
+        alert("Registration successful! Please log in.");
+        setIsRegister(false);
+      } else {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
 
-    // Firestore query for today's queue
-    const queueRef = collection(db, "queue");
-    const q = query(
-      queueRef,
-      where("timestamp", ">=", today),
-      where("timestamp", "<", tomorrow),
-      orderBy("timestamp", "asc")
-    );
+        const roleDoc = doc(db, "users", user.uid);
+        const userRole = (await getDoc(roleDoc)).data()?.role;
+        if (!userRole) throw new Error("User role not found. Please contact support.");
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const patients = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-
-      setCurrentServing(
-        patients.find((patient) => patient.status === "being attended") || null
-      );
-      setUpcomingPatients(
-        patients.filter((patient) => patient.status === "waiting")
-      );
-    });
-
-    return () => unsubscribe();
-  }, []);
+        setRole(userRole);
+        if (userRole === "Admin") {
+          navigate("/admin");
+        } else if (userRole === "Doctor") {
+          navigate("/doctor");
+        }
+      }
+    } catch (error) {
+      alert(`Error: ${error.message}`);
+    }
+  };
 
   return (
-    <div className="tv-display">
-      <div className="header">
-        <h1>{currentTime}</h1>
-      </div>
-      <div className="main-container">
-        <div className="current-serving">
-          <h2>Current Serving</h2>
-          <div className="queue-number">
-            {currentServing ? currentServing.queueNumber : "None"}
-          </div>
+    <div className="auth-page">
+      <div className="auth-container">
+        <div className="header">
+          <img src={SKPLogo} alt="SKP Logo" className="logo" />
+          <h2 className="header-title">{isRegister ? "Staff Register" : "Staff Login"}</h2>
         </div>
-        <div className="upcoming">
-          {upcomingPatients.map((patient) => (
-            <div className="upcoming-patient" key={patient.id}>
-              <div className="queue">{patient.queueNumber}</div>
-              <div className="name">{patient.name}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="footer">
-        <img src="/SKP-logo.jpg" alt="Logo" className="logo" />
+
+        <form onSubmit={handleAuth}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {isRegister && (
+            <select
+              value={role}
+              onChange={(e) => setRoleState(e.target.value)}
+              required
+            >
+              <option value="Doctor">Doctor</option>
+              <option value="Admin">Admin</option>
+            </select>
+          )}
+          <button type="submit">{isRegister ? "Register" : "Log In"}</button>
+        </form>
+
+        <button className="switch-button" onClick={() => setIsRegister(!isRegister)}>
+          {isRegister ? "Switch to Log In" : "Switch to Register"}
+        </button>
       </div>
     </div>
   );
 };
 
-export default ClinicDisplay;
+export default Auth;
