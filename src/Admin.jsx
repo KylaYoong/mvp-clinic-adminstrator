@@ -11,9 +11,8 @@ import {
   setDoc,
   onSnapshot,
   Timestamp,
-  getDocs,
+  runTransaction,
 } from "firebase/firestore";
-import { runTransaction } from "firebase/firestore"; // Import runTransaction
 import "./Admin.css";
 import SKPLogo from "./SKP-logo.jpg";
 
@@ -46,17 +45,14 @@ function Admin() {
 
   const handleInviteNextPatient = async () => {
     try {
-      // Get current and next patient
       const currentPatient = patients.find((patient) => patient.status === "being attended");
       const nextPatient = patients.find((patient) => patient.status === "waiting");
-  
-      // Mark the current patient as "completed"
+
       if (currentPatient) {
         await updateDoc(doc(db, "queue", currentPatient.id), { status: "completed" });
         console.log(`Marked as completed: ${currentPatient.queueNumber}`);
       }
-  
-      // Mark the next patient as "being attended"
+
       if (nextPatient) {
         await updateDoc(doc(db, "queue", nextPatient.id), { status: "being attended" });
         console.log(`Marked as being attended: ${nextPatient.queueNumber}`);
@@ -69,43 +65,44 @@ function Admin() {
       alert(`Error: ${error.message}`);
     }
   };
-  
+
   const handleRegisterPatient = async (e) => {
     e.preventDefault();
-  
+
     if (!empID.match(/^\d{6}$/)) {
       alert("Employee ID must be exactly 6 digits!");
       return;
     }
-  
+
     if (!empName.match(/^[a-zA-Z ]+$/)) {
       alert("Employee name must contain only letters and spaces!");
       return;
     }
-  
+
     setLoading(true);
     try {
-      const queueMetaRef = doc(db, "queueMeta", "adminQueue"); // Reference for adminQueue document
-  
-      // Transaction to ensure atomicity
+      const queueMetaRef = doc(db, "queueMeta", "adminQueue");
+
       let queueNumber = await runTransaction(db, async (transaction) => {
         const queueMetaDoc = await transaction.get(queueMetaRef);
-  
+
         if (!queueMetaDoc.exists()) {
-          // If the document does not exist, create it with A0001
           transaction.set(queueMetaRef, { queueNumber: "A0001" });
           return "A0001";
         } else {
-          // Increment the existing queue number
           const queueData = queueMetaDoc.data();
           const lastQueueNumber = parseInt(queueData.queueNumber.replace("A", ""), 10);
+
+          if (isNaN(lastQueueNumber)) {
+            throw new Error("Invalid queue number format in database.");
+          }
+
           const newQueueNumber = `A${String(lastQueueNumber + 1).padStart(4, "0")}`;
           transaction.update(queueMetaRef, { queueNumber: newQueueNumber });
           return newQueueNumber;
         }
       });
-  
-      // Save the patient document
+
       const patientRef = doc(collection(db, "queue"), empID);
       await setDoc(patientRef, {
         employeeID: empID,
@@ -115,7 +112,7 @@ function Admin() {
         status: "waiting",
         timestamp: Timestamp.now(),
       });
-  
+
       alert(`Patient registered successfully! Queue number: ${queueNumber}`);
       setEmpID("");
       setEmpName("");
@@ -127,11 +124,9 @@ function Admin() {
       setLoading(false);
     }
   };
-  
-  
 
   const handleNavigateToTVQueue = () => {
-    navigate("/tv-queue-display"); // Redirect to the TV Queue Display page
+    navigate("/tv-queue-display");
   };
 
   return (
@@ -163,19 +158,15 @@ function Admin() {
             type="email"
             placeholder="Enter Employee Email"
             value={empEmail}
-            onChange={(e) => setEmpEmail(e.target.value)} // Email field
+            onChange={(e) => setEmpEmail(e.target.value)}
           />
           <button type="submit" disabled={loading}>
             {loading ? "Registering..." : "Register New Patient"}
           </button>
         </form>
 
-        <br/>
-        {/* Add the new button */}
-        <button onClick={handleNavigateToTVQueue}>
-          View Queue on TV
-        </button>
-
+        <br />
+        <button onClick={handleNavigateToTVQueue}>View Queue on TV</button>
       </div>
     </div>
   );
