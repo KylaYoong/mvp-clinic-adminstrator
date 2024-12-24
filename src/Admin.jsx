@@ -69,8 +69,6 @@ function Admin() {
     }
   };
   
-  
-
   const handleRegisterPatient = async (e) => {
     e.preventDefault();
   
@@ -86,27 +84,31 @@ function Admin() {
   
     setLoading(true);
     try {
-      const queueCollection = collection(db, "queue");
-      const queueSnapshot = await getDocs(queueCollection);
+      const queueMetaRef = doc(collection(db, "queueMeta"), "queueInfo");
+      const queueMetaSnapshot = await getDocs(collection(db, "queueMeta"));
   
-      // Safely map queue numbers
-      const queueNumbers = queueSnapshot.docs
-        .map((doc) => doc.data().queueNumber)
-        .filter((queueNumber) => queueNumber !== undefined) // Filter out undefined values
-        .map((queueNumber) =>
-          parseInt(queueNumber.replace("D", ""), 10)
-        );
+      let queueNumber;
   
-      const nextQueueNumber = Math.max(0, ...queueNumbers) + 1;
-      const queueNumber = `D${String(nextQueueNumber).padStart(4, "0")}`;
+      if (!queueMetaSnapshot.empty) {
+        const queueData = queueMetaSnapshot.docs[0].data();
+        const lastQueueNumber = parseInt(queueData.queueNumber.replace("D", ""), 10);
+        queueNumber = `D${String(lastQueueNumber + 1).padStart(4, "0")}`;
+        await updateDoc(queueMetaRef, { queueNumber });
+      } else {
+        queueNumber = "D0001";
+        await setDoc(queueMetaRef, {
+          queueNumber,
+          lastResetDate: Timestamp.fromDate(new Date()),
+        });
+      }
   
       // Save the patient document
-      const patientRef = doc(queueCollection, empID);
+      const patientRef = doc(collection(db, "queue"), empID);
       await setDoc(patientRef, {
         employeeID: empID,
         name: empName,
-        email: empEmail || null, // Handle optional email properly
-        queueNumber: queueNumber,
+        email: empEmail || null,
+        queueNumber,
         status: "waiting",
         timestamp: Timestamp.now(),
       });
@@ -121,6 +123,7 @@ function Admin() {
       setLoading(false);
     }
   };
+  
 
   const handleNavigateToTVQueue = () => {
     navigate("/tv-queue-display"); // Redirect to the TV Queue Display page
